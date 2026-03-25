@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OGIVE Analytics — Where Data Finds Its Inflection</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400;1,9..40,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --deep-violet: #26215C;
+    --primary-purple: #534AB7;
+    --curve-accent: #7F77DD;
+    --light-purple: #AFA9EC;
+    --bg-purple: #EEEDFE;
+    --amber: #EF9F27;
+    --amber-hover: #FAC775;
+    --cream: #FAF9F7;
+    --off-white: #F5F4F0;
+    --text-primary: #1a1a1a;
+    --text-secondary: #555;
+    --text-muted: #888;
+    --border-light: rgba(0,0,0,0.06);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  /* ── NAVIGATION ── */
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 0 48px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 0.4s ease, box-shadow 0.4s ease, backdrop-filter 0.4s ease;
+  }
+
+  .nav.scrolled {
+    background: rgba(38, 33, 92, 0.92);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.06);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+  }
+
+  .nav-wordmark {
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    color: #EEEDFE;
+  }
+
+  .nav-wordmark-sub {
+    font-size: 8px;
+    letter-spacing: 0.32em;
+    color: var(--light-purple);
+    display: block;
+    margin-top: -2px;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 36px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--light-purple);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color 0.2s ease;
+    position: relative;
+  }
+
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 1.5px;
+    background: var(--amber);
+    transition: width 0.3s ease;
+  }
+
+  .nav-links a:hover { color: #fff; }
+  .nav-links a:hover::after { width: 100%; }
+
+  .nav-cta {
+    padding: 10px 24px !important;
+    background: var(--amber);
+    color: var(--deep-violet) !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    letter-spacing: 0.06em !important;
+    border-radius: 6px;
+    transition: background 0.2s ease, transform 0.2s ease !important;
+  }
+
+  .nav-cta::after { display: none !important; }
+  .nav-cta:hover {
+    background: var(--amber-hover) !important;
+    color: var(--deep-violet) !important;
+    transform: translateY(-1px);
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--deep-violet);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg-curves {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .hero-bg-curves svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero-bg-curves path {
+    will-change: transform;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 120px 48px 80px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .hero-logo {
+    width: min(560px, 88vw);
+    height: auto;
+    display: block;
+    margin: 0 auto 24px;
+    transform: translateX(72px) translateY(18px);
+    opacity: 0;
+    animation: heroLogoReveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards 0.15s;
+  }
+
+  .hero-logo svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+
+  .hero-logo-orbit {
+    opacity: 0;
+    animation: heroLogoOrbit 0.7s ease forwards 0.4s;
+  }
+
+  .hero-logo-curve {
+    stroke-dasharray: 56;
+    stroke-dashoffset: 56;
+    animation: heroLogoDraw 1s cubic-bezier(0.65, 0, 0.35, 1) forwards 0.55s;
+  }
+
+  .hero-logo-dot {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    animation: heroLogoDot 0.45s ease forwards;
+  }
+
+  .hero-logo-dot-1 { animation-delay: 0.95s; }
+  .hero-logo-dot-2 { animation-delay: 1.08s; }
+  .hero-logo-dot-3 { animation-delay: 1.21s; }
+
+  .hero-logo-wordmark,
+  .hero-logo-submark {
+    opacity: 0;
+    animation: heroLogoText 0.7s ease forwards 0.45s;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--light-purple);
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.3s;
+  }
+
+  .hero-title {
+    font-size: 48px;
+    font-weight: 400;
+    color: #EEEDFE;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+    margin: 0 auto 28px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.5s;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    color: var(--amber);
+  }
+
+  .hero-desc {
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--light-purple);
+    line-height: 1.7;
+    max-width: 560px;
+    margin: 0 auto 48px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.7s;
+  }
+
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.9s;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    padding: 16px 40px;
+    background: var(--amber);
+    color: var(--deep-violet);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    border-radius: 8px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+
+  .btn-primary:hover {
+    background: var(--amber-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(239, 159, 39, 0.25);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 32px;
+    background: transparent;
+    color: var(--light-purple);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    border: 1px solid rgba(175, 169, 236, 0.25);
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+
+  .btn-secondary:hover {
+    border-color: rgba(175, 169, 236, 0.5);
+    color: #fff;
+    background: rgba(255,255,255,0.04);
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 1.2s;
+  }
+
+  .hero-scroll span {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(175, 169, 236, 0.4);
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 32px;
+    background: linear-gradient(to bottom, var(--light-purple), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes heroLogoReveal {
+    from {
+      opacity: 0;
+      transform: translateX(72px) translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(72px) translateY(0);
+    }
+  }
+
+  @keyframes heroLogoOrbit {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes heroLogoDraw {
+    from { stroke-dashoffset: 56; }
+    to { stroke-dashoffset: 0; }
+  }
+
+  @keyframes heroLogoDot {
+    from {
+      opacity: 0;
+      transform: scale(0.25);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes heroLogoText {
+    from {
+      opacity: 0;
+      transform: translateX(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* ── REVEAL ANIMATIONS ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── SECTION STYLES ── */
+  .section {
+    padding: 120px 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--primary-purple);
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: 44px;
+    font-weight: 400;
+    color: var(--text-primary);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+
+  .section-title em {
+    font-style: italic;
+    color: var(--primary-purple);
+  }
+
+  .section-subtitle {
+    font-size: 17px;
+    font-weight: 300;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    max-width: 540px;
+    margin-bottom: 64px;
+  }
+
+  /* ── CHALLENGES ── */
+  .challenges-section {
+    background: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .problem-intro {
+    position: relative;
+  }
+
+  .problem-intro .reveal {
+    position: relative;
+    z-index: 1;
+  }
+
+  .problem-corner-accent {
+    position: absolute;
+    top: -190px;
+    right: -165px;
+    width: 620px;
+    height: auto;
+    opacity: 0.34;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .challenges-section > .section,
+  .challenges-section > div {
+    position: relative;
+    z-index: 1;
+  }
+
+  .challenges-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+
+  .challenge-card {
+    padding: 48px 32px;
+    border-right: 1px solid var(--border-light);
+    position: relative;
+  }
+
+  .challenge-card:last-child { border-right: none; }
+
+  .challenge-number {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--bg-purple);
+    line-height: 1;
+    margin-bottom: 20px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .challenge-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+
+  .challenge-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+
+  /* ── SOLUTIONS / SERVICES ── */
+  .solutions-section {
+    background: var(--deep-violet);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .solutions-section .section-label { color: var(--light-purple); }
+  .solutions-section .section-title { color: #EEEDFE; }
+  .solutions-section .section-title em { color: var(--amber); }
+  .solutions-section .section-subtitle { color: var(--light-purple); }
+
+  .solutions-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.06;
+  }
+
+  .solutions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .solution-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 44px 40px;
+    transition: all 0.35s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .solution-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--curve-accent), var(--amber));
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+
+  .solution-card:hover {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.1);
+    transform: translateY(-4px);
+  }
+
+  .solution-card:hover::before { opacity: 1; }
+
+  .solution-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(127, 119, 221, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .solution-card-title {
+    font-size: 20px;
+    font-weight: 500;
+    color: #EEEDFE;
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+
+  .solution-card-desc {
+    font-size: 14px;
+    color: var(--light-purple);
+    line-height: 1.7;
+  }
+
+  /* ── PROCESS ── */
+  .process-track {
+    display: flex;
+    gap: 0;
+    position: relative;
+    margin-top: 16px;
+  }
+
+  .process-track::before {
+    content: '';
+    position: absolute;
+    top: 36px;
+    left: 36px;
+    right: 36px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary-purple), var(--curve-accent), var(--light-purple), var(--amber));
+    z-index: 0;
+  }
+
+  .process-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    padding: 0 16px;
+  }
+
+  .process-dot {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--primary-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--primary-purple);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(83, 74, 183, 0.08);
+  }
+
+  .process-step:hover .process-dot {
+    background: var(--primary-purple);
+    color: #fff;
+    transform: scale(1.08);
+    box-shadow: 0 8px 24px rgba(83, 74, 183, 0.2);
+  }
+
+  .process-step-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+
+  .process-step-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 200px;
+    margin: 0 auto;
+  }
+
+  /* ── CASE STUDY ── */
+  .case-study-section {
+    background: #fff;
+    position: relative;
+  }
+
+  .results-heading {
+    display: inline-flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  .results-heading-motif {
+    width: 150px;
+    height: auto;
+    display: block;
+    opacity: 0.9;
+  }
+
+  .case-study-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(38, 33, 92, 0.1), 0 8px 24px rgba(0,0,0,0.04);
+  }
+
+  .case-study-left {
+    background: var(--deep-violet);
+    padding: 64px 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .case-study-left::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 350px;
+    height: 350px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(127,119,221,0.12) 0%, transparent 70%);
+  }
+
+  .case-study-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 20px;
+  }
+
+  .case-study-headline {
+    font-size: 30px;
+    font-weight: 400;
+    color: #EEEDFE;
+    line-height: 1.25;
+    margin-bottom: 20px;
+    letter-spacing: -0.01em;
+  }
+
+  .case-study-headline em {
+    font-style: italic;
+    color: var(--amber);
+  }
+
+  .case-study-headline .nowrap {
+    white-space: nowrap;
+  }
+
+  .case-study-body {
+    font-size: 15px;
+    color: var(--light-purple);
+    line-height: 1.7;
+  }
+
+  .case-study-right {
+    background: var(--bg-purple);
+    padding: 64px 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 36px;
+  }
+
+  .case-stat {
+    display: grid;
+    grid-template-columns: 170px 1fr;
+    align-items: center;
+    column-gap: 14px;
+  }
+
+  .case-stat-number {
+    font-size: 36px;
+    font-weight: 600;
+    color: var(--primary-purple);
+    line-height: 1;
+    width: 100%;
+  }
+
+  .case-stat-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  .case-stat-divider {
+    width: 100%;
+    height: 1px;
+    background: rgba(83, 74, 183, 0.12);
+  }
+
+  /* ── WHY ── */
+  .why-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .why-card {
+    padding: 44px 36px;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid var(--border-light);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .why-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-purple), var(--curve-accent));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+  }
+
+  .why-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(38, 33, 92, 0.08);
+  }
+
+  .why-card:hover::after { transform: scaleX(1); }
+
+  .why-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--bg-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .why-card-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+
+  .why-card-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+
+  /* ── TEAM ── */
+  .team-section {
+    background: #fff;
+  }
+
+  .team-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+
+  .team-card {
+    background: var(--cream);
+    border-radius: 16px;
+    padding: 48px 44px;
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+    transition: all 0.3s ease;
+  }
+
+  .team-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(38, 33, 92, 0.06);
+  }
+
+  .team-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-purple), var(--curve-accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 24px;
+    font-weight: 500;
+    color: #fff;
+  }
+
+  .team-info { flex: 1; }
+
+  .team-name {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .team-role {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--primary-purple);
+    letter-spacing: 0.04em;
+    margin-bottom: 14px;
+  }
+
+  .team-bio {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+
+  /* ── CTA ── */
+  .cta-section {
+    background: var(--primary-purple);
+    padding: 120px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(239, 159, 39, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cta-section::after {
+    content: '';
+    position: absolute;
+    bottom: -200px;
+    left: -200px;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(38, 33, 92, 0.3) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cta-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .cta-title {
+    font-size: 48px;
+    font-weight: 400;
+    color: #fff;
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+
+  .cta-title em {
+    font-style: italic;
+    color: var(--amber);
+  }
+
+  .cta-desc {
+    font-size: 17px;
+    color: var(--light-purple);
+    margin-bottom: 44px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+  }
+
+  .cta-section .btn-primary {
+    padding: 18px 48px;
+    font-size: 15px;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    background: var(--deep-violet);
+    padding: 56px 48px 40px;
+  }
+
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .footer-copy {
+    font-size: 12px;
+    color: rgba(175, 169, 236, 0.5);
+    letter-spacing: 0.04em;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 28px;
+    list-style: none;
+  }
+
+  .footer-links a {
+    font-size: 12px;
+    color: var(--light-purple);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color 0.2s ease;
+  }
+
+  .footer-links a:hover { color: #fff; }
+
+  /* ── ENGAGEMENT MODELS ── */
+  .engage-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .engage-card {
+    border-radius: 16px;
+    padding: 48px 44px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .engage-card.milestone {
+    background: var(--deep-violet);
+  }
+
+  .engage-card.hourly {
+    background: #fff;
+    border: 1px solid var(--border-light);
+  }
+
+  .engage-tag {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .engage-card.milestone .engage-tag { color: var(--amber); }
+  .engage-card.hourly .engage-tag { color: var(--primary-purple); }
+
+  .engage-title {
+    font-size: 24px;
+    font-weight: 500;
+    margin-bottom: 14px;
+    line-height: 1.25;
+  }
+
+  .engage-card.milestone .engage-title { color: #EEEDFE; }
+  .engage-card.hourly .engage-title { color: var(--text-primary); }
+
+  .engage-desc {
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  .engage-card.milestone .engage-desc { color: var(--light-purple); }
+  .engage-card.hourly .engage-desc { color: var(--text-secondary); }
+
+  .engage-detail {
+    font-size: 13px;
+    line-height: 1.6;
+    padding-top: 20px;
+    border-top: 1px solid;
+  }
+
+  .engage-card.milestone .engage-detail {
+    color: rgba(175, 169, 236, 0.6);
+    border-color: rgba(255,255,255,0.08);
+  }
+
+  .engage-card.hourly .engage-detail {
+    color: var(--text-muted);
+    border-color: var(--border-light);
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ NAV ═══════════ -->
+<nav class="nav" id="nav">
+  <a href="#" class="nav-logo">
+    <svg width="32" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="24" cy="22" r="18" fill="none" stroke="#AFA9EC" stroke-width="2"/>
+      <path d="M8 32 C12 26, 16 18, 24 14 C30 11, 34 13, 40 16" fill="none" stroke="#7F77DD" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="8" cy="32" r="2.5" fill="#AFA9EC"/>
+      <circle cx="24" cy="14" r="2.5" fill="#7F77DD"/>
+      <circle cx="40" cy="16" r="2.5" fill="#AFA9EC"/>
+    </svg>
+    <div>
+      <span class="nav-wordmark">OGIVE</span>
+      <span class="nav-wordmark-sub">ANALYTICS</span>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#services">Services</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#results">Results</a></li>
+    <li><a href="#team">Team</a></li>
+    <li><a href="#contact" class="nav-cta">Book a Call</a></li>
+  </ul>
+</nav>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section class="hero">
+  <div class="hero-bg-curves">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M-100 700 C100 680, 300 600, 500 450 C700 300, 900 200, 1100 180 C1300 160, 1400 200, 1540 220" fill="none" stroke="rgba(175,169,236,0.06)" stroke-width="3.5"/>
+      <path d="M-100 750 C100 730, 300 650, 500 500 C700 350, 900 250, 1100 230 C1300 210, 1400 250, 1540 270" fill="none" stroke="rgba(127,119,221,0.05)" stroke-width="3.5"/>
+      <path d="M-100 800 C100 780, 300 700, 500 550 C700 400, 900 300, 1100 280 C1300 260, 1400 300, 1540 320" fill="none" stroke="rgba(83,74,183,0.04)" stroke-width="3.5"/>
+      <path d="M-100 650 C100 630, 300 550, 500 400 C700 250, 900 150, 1100 130 C1300 110, 1400 150, 1540 170" fill="none" stroke="rgba(175,169,236,0.03)" stroke-width="2.5"/>
+    </svg>
+  </div>
+  <div class="hero-content">
+    <div class="hero-logo" aria-label="OGIVE Analytics logo">
+      <svg viewBox="0 0 260 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+        <circle class="hero-logo-orbit" cx="24" cy="24" r="22" fill="none" stroke="#AFA9EC" stroke-width="2.5"/>
+        <path class="hero-logo-curve" d="M6 36 C10 28, 16 18, 24 12 C31 8, 36 10, 42 14" fill="none" stroke="#7F77DD" stroke-width="3" stroke-linecap="round"/>
+        <circle class="hero-logo-dot hero-logo-dot-1" cx="6" cy="36" r="3" fill="#AFA9EC"/>
+        <circle class="hero-logo-dot hero-logo-dot-2" cx="24" cy="12" r="3" fill="#7F77DD"/>
+        <circle class="hero-logo-dot hero-logo-dot-3" cx="42" cy="14" r="3" fill="#AFA9EC"/>
+        <text class="hero-logo-wordmark" x="58" y="28" font-family="'DM Sans', sans-serif" font-weight="500" font-size="28" fill="#EEEDFE" letter-spacing="0.16em">OGIVE</text>
+        <text class="hero-logo-submark" x="58" y="44" font-family="'DM Sans', sans-serif" font-weight="400" font-size="10" fill="#AFA9EC" letter-spacing="0.3em">ANALYTICS</text>
+      </svg>
+    </div>
+    <h1 class="hero-title">Where data finds its <em>inflection</em></h1>
+    <p class="hero-desc">We build tailored data architectures that automate your workflows, sharpen your insights, and free your team to focus on what matters.</p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn-primary">Book a Discovery Call</a>
+      <a href="#services" class="btn-secondary">
+        <span>See How We Work</span>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ═══════════ CHALLENGES ═══════════ -->
+<section class="challenges-section">
+  <img
+    src="Motifs/motif-corner-accent.svg"
+    alt=""
+    class="problem-corner-accent"
+    aria-hidden="true"
+  >
+  <div class="section problem-intro" style="padding-bottom: 64px;">
+    <div class="reveal">
+      <p class="section-label">The Problem</p>
+      <h2 class="section-title">Modern research is held back<br>by <em>fragmented systems</em></h2>
+    </div>
+  </div>
+  <div style="max-width: 1200px; margin: 0 auto; padding: 0 48px 120px;">
+    <div class="challenges-grid reveal">
+      <div class="challenge-card">
+        <div class="challenge-number">01</div>
+        <h3 class="challenge-title">Fragmented Systems</h3>
+        <p class="challenge-desc">Research firms rely on a patchwork of tools — surveys, transcripts, spreadsheets — with no centralized workflow connecting them.</p>
+      </div>
+      <div class="challenge-card">
+        <div class="challenge-number">02</div>
+        <h3 class="challenge-title">Manual Workflows</h3>
+        <p class="challenge-desc">Analysts spend enormous amounts of time cleaning survey data, coding interview responses, and managing spreadsheets by hand.</p>
+      </div>
+      <div class="challenge-card">
+        <div class="challenge-number">03</div>
+        <h3 class="challenge-title">Slow Turnaround</h3>
+        <p class="challenge-desc">When everything is manual and disconnected, even simple studies become bottlenecks that delay insights and client deliverables.</p>
+      </div>
+      <div class="challenge-card">
+        <div class="challenge-number">04</div>
+        <h3 class="challenge-title">No Scalability</h3>
+        <p class="challenge-desc">Without standardized processes, firms operate on "this is how it's always been done." As they grow, the process breaks — fast.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ SOLUTIONS / SERVICES ═══════════ -->
+<section class="solutions-section" id="services">
+  <div class="solutions-bg">
+    <svg width="100%" height="100%" viewBox="0 0 1440 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M-100 800 C200 750, 400 500, 700 400 C1000 300, 1200 350, 1540 300" fill="none" stroke="#AFA9EC" stroke-width="2"/>
+      <path d="M-100 850 C200 800, 400 550, 700 450 C1000 350, 1200 400, 1540 350" fill="none" stroke="#7F77DD" stroke-width="1.5"/>
+      <path d="M-100 750 C200 700, 400 450, 700 350 C1000 250, 1200 300, 1540 250" fill="none" stroke="#534AB7" stroke-width="1"/>
+    </svg>
+  </div>
+  <div class="section">
+    <div class="reveal">
+      <p class="section-label">What We Build</p>
+      <h2 class="section-title">Elevating teams through <em>engineering</em></h2>
+      <p class="section-subtitle">We design and implement end-to-end data systems tailored to your tools, budget, and workflow. No jargon. No bloated deliverables.</p>
+    </div>
+    <div class="solutions-grid">
+      <div class="solution-card reveal">
+        <div class="solution-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="#7F77DD" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="6" r="2" fill="#AFA9EC"/><circle cx="16" cy="12" r="2" fill="#AFA9EC"/><circle cx="12" cy="18" r="2" fill="#AFA9EC"/></svg>
+        </div>
+        <h3 class="solution-card-title">Unified Architecture</h3>
+        <p class="solution-card-desc">We identify and integrate the right systems into a single, modern, end-to-end workflow — built around your technical expertise, budget, and needs.</p>
+      </div>
+      <div class="solution-card reveal">
+        <div class="solution-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="#7F77DD" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="12" r="4" fill="none" stroke="#AFA9EC" stroke-width="1.5"/></svg>
+        </div>
+        <h3 class="solution-card-title">Automated Processes</h3>
+        <p class="solution-card-desc">We automate cleaning, coding, transformation, and reporting so your team can focus on insights instead of spreadsheet management.</p>
+      </div>
+      <div class="solution-card reveal">
+        <div class="solution-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="none" stroke="#7F77DD" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3 class="solution-card-title">Faster Delivery</h3>
+        <p class="solution-card-desc">We design workflows that automate every step, from surveying and analytics to construction of a client-ready deliverable. Speed without shortcuts.</p>
+      </div>
+      <div class="solution-card reveal">
+        <div class="solution-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9m-9 9a9 9 0 019-9" stroke="#7F77DD" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <h3 class="solution-card-title">Scalable Systems</h3>
+        <p class="solution-card-desc">We build templates, structure, and data storage that scale as your firm grows. Architecture that handles ten studies as easily as one.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ PROCESS ═══════════ -->
+<section id="process">
+  <div class="section">
+    <div class="reveal">
+      <p class="section-label">How We Work</p>
+      <h2 class="section-title">Four phases from discovery<br>to <em>delivery</em></h2>
+      <p class="section-subtitle">Every engagement follows a clear, transparent process. No mysteries, no surprises — just systematic progress toward your goals.</p>
+    </div>
+    <div class="process-track reveal">
+      <div class="process-step">
+        <div class="process-dot">01</div>
+        <h3 class="process-step-title">Discovery</h3>
+        <p class="process-step-desc">Understand your current data environment, challenges, and goals. Define what success looks like.</p>
+      </div>
+      <div class="process-step">
+        <div class="process-dot">02</div>
+        <h3 class="process-step-title">Scope & Proposal</h3>
+        <p class="process-step-desc">A detailed plan outlining cost, deliverables, timeline, and implementation strategy.</p>
+      </div>
+      <div class="process-step">
+        <div class="process-dot">03</div>
+        <h3 class="process-step-title">Build & Deploy</h3>
+        <p class="process-step-desc">The implementation phase. We architect, build, test, and deploy your solution.</p>
+      </div>
+      <div class="process-step">
+        <div class="process-dot">04</div>
+        <h3 class="process-step-title">Team Training</h3>
+        <p class="process-step-desc">Your team is comfortable maintaining and working with the solutions we build — before we step back.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CASE STUDY ═══════════ -->
+<section class="case-study-section" id="results">
+  <div class="section">
+    <div class="reveal">
+      <p class="section-label">Results</p>
+      <h2 class="section-title results-heading" style="margin-bottom: 48px;">
+        <span>Proof of <em>impact</em></span>
+        <img
+          src="Motifs/motif-progress-trail.svg"
+          alt=""
+          class="results-heading-motif"
+          aria-hidden="true"
+        >
+      </h2>
+    </div>
+    <div class="case-study-card reveal">
+      <div class="case-study-left">
+        <p class="case-study-eyebrow">Case Study</p>
+        <h3 class="case-study-headline"><em>Rethinking</em> a tech stack for a mid-size financial market <span class="nowrap">research firm</span></h3>
+        <p class="case-study-body">Streamlined client operations by automating manual workflows, modernizing data architecture, and introducing machine learning to deliver real-time, strategic insights.</p>
+      </div>
+      <div class="case-study-right">
+        <div class="case-stat">
+          <span class="case-stat-number">$150K+</span>
+          <span class="case-stat-label">Annual cost savings from eliminating manual transcription and fragmented tooling</span>
+        </div>
+        <div class="case-stat-divider"></div>
+        <div class="case-stat">
+          <span class="case-stat-number">3x</span>
+          <span class="case-stat-label">Faster reporting speed through automated data pipelines from Dovetail to Snowflake to DOMO</span>
+        </div>
+        <div class="case-stat-divider"></div>
+        <div class="case-stat">
+          <span class="case-stat-number">100%</span>
+          <span class="case-stat-label">Centralized data — unified ecosystem replaced fragmented spreadsheets and siloed tools</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ WHY US ═══════════ -->
+<section>
+  <div class="section">
+    <div class="reveal">
+      <p class="section-label">Why Ogive</p>
+      <h2 class="section-title">Consulting done <em>better</em></h2>
+      <p class="section-subtitle">We've worked with other consultants and know the pain points. Faster delivery, smoother handoffs, and flexible pricing built around your team's needs.</p>
+    </div>
+    <div class="why-grid">
+      <div class="why-card reveal">
+        <div class="why-card-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 1l3 6.3L21 8.3l-5 4.9L17.1 21 11 17.3 4.9 21 6 13.2 1 8.3l7-.7L11 1z" fill="none" stroke="#534AB7" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        </div>
+        <h3 class="why-card-title">Small Team Agility</h3>
+        <p class="why-card-desc">Fast build cycles, no handoffs between departments, real responsiveness. Your project moves at the speed of conversation.</p>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-card-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="2" width="18" height="18" rx="3" fill="none" stroke="#534AB7" stroke-width="1.5"/><path d="M7 11l3 3 5-6" stroke="#7F77DD" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3 class="why-card-title">Custom Solutions</h3>
+        <p class="why-card-desc">No standardized playbooks. Every client is unique — we design tailored workflows and systems built specifically around your tools, budget, and needs.</p>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-card-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9" fill="none" stroke="#534AB7" stroke-width="1.5"/><path d="M11 6v5l3.5 3.5" stroke="#7F77DD" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <h3 class="why-card-title">Hyper-Focused</h3>
+        <p class="why-card-desc">We are intentional about the clients we take on so your project gets priority, responsiveness, and our full attention.</p>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-card-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M17 8A5 5 0 007 8c0 6 4 10 4 10h0s4-4 4-10z" fill="none" stroke="#534AB7" stroke-width="1.5"/><circle cx="11" cy="8" r="2" fill="#7F77DD"/></svg>
+        </div>
+        <h3 class="why-card-title">Direct Access</h3>
+        <p class="why-card-desc">You work directly with the people who design, build, and support your systems. No account managers in between.</p>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-card-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M2 16l5-5 4 4 9-11" fill="none" stroke="#534AB7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3 class="why-card-title">Faster Delivery</h3>
+        <p class="why-card-desc">Smoother handoffs, flexible pricing, and a pace that matches your urgency.</p>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-card-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 1v20M1 11h20" stroke="#534AB7" stroke-width="1.5" stroke-linecap="round"/><circle cx="11" cy="11" r="4" fill="none" stroke="#7F77DD" stroke-width="1.5"/></svg>
+        </div>
+        <h3 class="why-card-title">Big-System Rigor</h3>
+        <p class="why-card-desc">Enterprise-grade architecture and methodology, delivered with the speed and care of a dedicated partner.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ TEAM ═══════════ -->
+<section class="team-section" id="team">
+  <div class="section">
+    <div class="reveal">
+      <p class="section-label">The Team</p>
+      <h2 class="section-title">Built by people who <em>build</em></h2>
+      <p class="section-subtitle">No layers. No intermediaries. You work directly with the people who architect and implement your systems.</p>
+    </div>
+    <div class="team-grid reveal">
+      <div class="team-card">
+        <div class="team-avatar">MS</div>
+        <div class="team-info">
+          <h3 class="team-name">Mackenzie Sky</h3>
+          <p class="team-role">Data Scientist</p>
+          <p class="team-bio">Bridges the gap between technical architecture and strategic insight. Background in statistics, automation, and systems integration. Experience helping organizations streamline fragmented systems and unlock the full potential of their data.</p>
+        </div>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar">TF</div>
+        <div class="team-info">
+          <h3 class="team-name">Teddy Flattmann</h3>
+          <p class="team-role">Data Engineer & Systems Architect</p>
+          <p class="team-bio">Specializes in designing scalable data pipelines and multi-layered data warehouses that power advanced analytics and reporting. Blends technical expertise with practical implementation, ensuring every solution is efficient and aligned with real-world goals.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CTA ═══════════ -->
+<section class="cta-section" id="contact">
+  <div class="cta-content reveal">
+    <h2 class="cta-title">Let's find your<br><em>inflection point.</em></h2>
+    <p class="cta-desc">Whether you need a full data architecture overhaul or a single dashboard that actually works, start with a conversation.</p>
+    <a href="mailto:hello@ogiveanalytics.com" class="btn-primary">Book a Discovery Call</a>
+  </div>
+</section>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-left">
+      <svg width="24" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="24" cy="22" r="18" fill="none" stroke="rgba(175,169,236,0.4)" stroke-width="2"/>
+        <path d="M8 32 C12 26, 16 18, 24 14 C30 11, 34 13, 40 16" fill="none" stroke="rgba(127,119,221,0.4)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="8" cy="32" r="2.5" fill="rgba(175,169,236,0.4)"/>
+        <circle cx="24" cy="14" r="2.5" fill="rgba(127,119,221,0.4)"/>
+        <circle cx="40" cy="16" r="2.5" fill="rgba(175,169,236,0.4)"/>
+      </svg>
+      <span class="footer-copy">&copy; 2026 Ogive Analytics. All rights reserved.</span>
+    </div>
+    <ul class="footer-links">
+      <li><a href="#services">Services</a></li>
+      <li><a href="#process">Process</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </div>
+</footer>
+
+<!-- ═══════════ SCRIPTS ═══════════ -->
+<script>
+// Nav scroll behavior
+const nav = document.getElementById('nav');
+const hero = document.querySelector('.hero');
+const heroCurves = document.querySelectorAll('.hero-bg-curves path');
+const heroCurveSpeeds = [
+  { x: 42, y: -34 },
+  { x: 32, y: -26 },
+  { x: 22, y: -18 },
+  { x: 14, y: -12 }
+];
+let heroMotionTicking = false;
+
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 80) {
+    nav.classList.add('scrolled');
+  } else {
+    nav.classList.remove('scrolled');
+  }
+
+  if (!heroMotionTicking) {
+    window.requestAnimationFrame(updateHeroCurves);
+    heroMotionTicking = true;
+  }
+}, { passive: true });
+
+window.addEventListener('resize', () => {
+  if (!heroMotionTicking) {
+    window.requestAnimationFrame(updateHeroCurves);
+    heroMotionTicking = true;
+  }
+}, { passive: true });
+
+function updateHeroCurves() {
+  heroMotionTicking = false;
+
+  if (!hero || !heroCurves.length) return;
+
+  const rect = hero.getBoundingClientRect();
+  const isHeroVisible = rect.bottom > 0 && rect.top < window.innerHeight;
+  const progress = isHeroVisible
+    ? Math.min(Math.max(-rect.top / rect.height, 0), 1)
+    : 0;
+
+  heroCurves.forEach((curve, index) => {
+    const speed = heroCurveSpeeds[index] || heroCurveSpeeds[heroCurveSpeeds.length - 1];
+    const x = progress * speed.x;
+    const y = progress * speed.y;
+    curve.setAttribute('transform', `translate(${x} ${y})`);
+  });
+}
+
+updateHeroCurves();
+
+// Reveal on scroll
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, {
+  threshold: 0.12,
+  rootMargin: '0px 0px -40px 0px'
+});
+
+reveals.forEach(el => observer.observe(el));
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+
+</body>
+</html>
